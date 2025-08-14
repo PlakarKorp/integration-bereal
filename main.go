@@ -44,32 +44,29 @@ type Memory struct {
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("📱 Entrez votre numéro de téléphone (ex: +33612345678) : ")
+	fmt.Print("Enter your phone number (ex: +33612345678): ")
 	phone, _ := reader.ReadString('\n')
 	phone = strings.TrimSpace(phone)
 
-	// Étape 1 : envoyer le code
-	fmt.Println("📨 Envoi du code...")
+	fmt.Println("Sending code...")
 	if err := sendCode(phone); err != nil {
 		panic(err)
 	}
 
-	fmt.Print("🔐 Entrez le code reçu par SMS : ")
+	fmt.Print("Enter the code received by SMS: ")
 	code, _ := reader.ReadString('\n')
 	code = strings.TrimSpace(code)
 
-	// Étape 2 : login
 	token, err := login(phone, code)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("✅ Authentification réussie !")
+	fmt.Println("Authentication successful!")
 
-	// Étape 3 : télécharger les souvenirs
 	if err := downloadMemories(token); err != nil {
 		panic(err)
 	}
-	fmt.Println("✅ Téléchargement terminé.")
+	fmt.Println("Download complete.")
 }
 
 func sendCode(phone string) error {
@@ -100,7 +97,7 @@ func downloadMemories(token string) error {
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("erreur API: %s\n%s", resp.Status, body)
+		return fmt.Errorf("API error: %s\n%s", resp.Status, body)
 	}
 
 	var memories []Memory
@@ -108,7 +105,7 @@ func downloadMemories(token string) error {
 		return err
 	}
 
-	fmt.Printf("📸 %d BeReal trouvés.\n", len(memories))
+	fmt.Printf("%d BeReal found.\n", len(memories))
 
 	for _, mem := range memories {
 		date := mem.Primary.TakenAt.Format("2006-01-02")
@@ -121,21 +118,21 @@ func downloadMemories(token string) error {
 func saveImage(url, path string) {
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("❌ Erreur téléchargement : %s\n", url)
+		fmt.Printf("Download error: %s\n", url)
 		return
 	}
 	defer resp.Body.Close()
 
 	f, err := os.Create(path)
 	if err != nil {
-		fmt.Printf("❌ Erreur fichier : %s\n", path)
+		fmt.Printf("File error: %s\n", path)
 		return
 	}
 	defer f.Close()
 
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
-		fmt.Printf("❌ Erreur écriture : %s\n", path)
+		fmt.Printf("Write error: %s\n", path)
 	}
 }
 
@@ -152,7 +149,7 @@ func postJSON(path string, payload any, target any) error {
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("❌ HTTP %d : %s", resp.StatusCode, string(body))
+		return fmt.Errorf("HTTP %d : %s", resp.StatusCode, string(body))
 	}
 
 	if target != nil {
